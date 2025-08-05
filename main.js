@@ -1,0 +1,1557 @@
+const hamburgerBtn = document.getElementById('hamburger-btn');
+const navMenu = document.getElementById('nav-menu');
+const cartBtn = document.querySelector('.cart-btn');
+const cartModal = document.getElementById('cart-modal');
+const cartCloseBtn = document.querySelector('.cart-close-btn');
+const cartItemsList = document.querySelector('.cart-items');
+const totalPriceEl = document.querySelector('.total-price');
+const checkoutBtn = document.querySelector('.checkout-btn');
+
+const checkoutModal = document.getElementById('checkout-modal');
+const checkoutCloseBtn = document.querySelector('.checkout-close-btn');
+const whatsappBtn = document.querySelector('.whatsapp-btn');
+const gmailBtn = document.querySelector('.gmail-btn');
+
+const themeToggle = document.getElementById('theme-toggle');
+
+const filterButtons = document.querySelectorAll('.filter-btn');
+const productsGrid = document.getElementById('products-grid');
+
+const contactForm = document.getElementById('contact-form');
+const formStatus = document.getElementById('form-status');
+
+// Search elements
+const searchBtn = document.querySelector('.search-btn');
+const searchContainer = document.getElementById('search-container');
+const searchInput = document.getElementById('search-input');
+const searchCloseBtn = document.getElementById('search-close-btn');
+
+// Product Gallery Modal elements
+const galleryModal = document.getElementById('gallery-modal');
+const galleryCloseBtn = document.querySelector('.gallery-close-btn');
+const galleryMainImage = document.getElementById('gallery-main-image');
+const galleryThumbnails = document.getElementById('gallery-thumbnails');
+const galleryProductName = document.getElementById('gallery-product-name');
+const galleryProductPrice = document.getElementById('gallery-product-price');
+const galleryAddCartBtn = document.getElementById('gallery-add-cart');
+const galleryPrevBtn = document.querySelector('.gallery-prev');
+const galleryNextBtn = document.querySelector('.gallery-next');
+
+let cart = [];
+let currentOrderMessage = '';
+let currentFilter = 'all';
+let currentSearchTerm = '';
+let currentGalleryProduct = null;
+let currentImageIndex = 0;
+
+// Cart persistence functions
+function saveCart() {
+  localStorage.setItem('cart', JSON.stringify(cart));
+}
+
+function loadCart() {
+  const savedCart = localStorage.getItem('cart');
+  if (savedCart) {
+    cart = JSON.parse(savedCart);
+    renderCart();
+  }
+}
+
+// Theme management
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+  document.documentElement.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+}
+
+// Initialize theme and cart on page load
+initTheme();
+loadCart();
+
+// Theme toggle event listener
+themeToggle.addEventListener('click', toggleTheme);
+
+// Updated productsData with multiple images for first 6 products
+const productsData = [
+  {
+    id: 1,
+    category: ['bracelets'],
+    name: 'Earth Warior',
+    price: '10000',
+    img: 'P_.jpg',
+    images: [
+      'P_.jpg',
+    ]
+  },
+  {
+    id: 2,
+    category: ['waist-beads'],
+    name: 'Big Aunties Strands',
+    price: '25000',
+    img: 'P_1.jpg',
+    images: [
+      'P_1.jpg',
+      'P_7.jpg'
+    ]
+  },
+  {
+    id: 3,
+    category: ['necklace'],
+    name: 'Pearl and Path',
+    price: '45000',
+    img: 'P_2.jpg',
+    images: ['P_2.jpg',]
+  },
+  {
+    id: 4,
+    category: ['waist-beads'],
+    name: 'Strand Of Excelence',
+    price: '20000',
+    img: 'P_3.jpg',
+    images: ['P_3.jpg']
+  },
+  {
+    id: 5,
+    category: ['bracelets'],
+    name: 'Obsidian Frost',
+    price: '7000',
+    img: 'P_4.jpg',
+    images: [
+      'P_4.jpg',
+    ]
+  },
+  {
+    id: 6,
+    category: ['watches'],
+    name: 'Premium Timepiece',
+    price: '100000',
+    img: 'P_5.jpg',
+    images: [
+      'P_5.jpg',
+    ]
+  },
+  {
+    id: 7,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_6.jpg',
+  },
+  {
+    id: 8,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_7.jpg',
+    images: [
+      'P_.jpg',
+    ]
+  },
+  {
+    id: 9,
+    category: ['necklace'],
+    name: 'The Blue Evil Eye',
+    price: '30000',
+    img: 'P_8.jpg',
+  },
+  {
+    id: 10,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_9.jpg',
+  },
+  {
+    id: 11,
+    category: ['bags'],
+    name: '#',
+    price: '#',
+    img: 'P_10.jpg',
+  },
+  {
+    id: 12,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_11.jpg',
+  },
+  {
+    id: 13,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_12.jpg',
+  },
+  {
+    id: 14,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_13.jpg',
+  },
+  {
+    id: 15,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_14.jpg',
+  },
+  {
+    id: 16,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_15.jpg',
+  },
+  {
+    id: 17,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_16.jpg',
+  },
+  {
+    id: 18,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_17.jpg',
+  },
+  {
+    id: 19,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_18.jpg',
+  },
+  {
+    id: 20,
+    category: ['trouser-chains'],
+    name: '#',
+    price: '#',
+    img: 'P_19.jpg',
+  },
+  {
+    id: 21,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_20.jpg',
+  },
+  {
+    id: 22,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_21.jpg',
+  },
+  {
+    id: 23,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_22.jpg',
+  },
+  {
+    id: 24,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_23.jpg',
+  },
+  {
+    id: 25,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_24.jpg',
+  },
+  {
+    id: 26,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_25.jpg',
+  },
+  {
+    id: 27,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_26.jpg',
+  },
+  {
+    id: 28,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_27.jpg',
+  },
+  {
+    id: 29,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_28.jpg',
+  },
+  {
+    id: 30,
+    category: ['bags'],
+    name: '#',
+    price: '#',
+    img: 'P_29.jpg',
+  },
+  {
+    id: 31,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_30.jpg',
+  },
+  {
+    id: 32,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_31.jpg',
+  },
+  {
+    id: 33,
+    category: ['bracelets', 'necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_32.jpg',
+  },
+  {
+    id: 34,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_33.jpg',
+  },
+  {
+    id: 35,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_34.jpg',
+  },
+  {
+    id: 36,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_35.jpg',
+  },
+  {
+    id: 37,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_36.jpg',
+  },
+  {
+    id: 38,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_37.jpg',
+  },
+  {
+    id: 39,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_38.jpg',
+  },
+  {
+    id: 40,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_39.jpg',
+  },
+  {
+    id: 41,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_40.jpg',
+  },
+  {
+    id: 42,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_41.jpg',
+  },
+  {
+    id: 43,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_42.jpg',
+  },
+  {
+    id: 44,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_43.jpg',
+  },
+  {
+    id: 45,
+    category: ['bags'],
+    name: '#',
+    price: '#',
+    img: 'P_44.jpg',
+  },
+  {
+    id: 46,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_45.jpg',
+  },
+  {
+    id: 47,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_46.jpg',
+  },
+  {
+    id: 48,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_47.jpg',
+  },
+  {
+    id: 49,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_48.jpg',
+  },
+  {
+    id: 50,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_49.jpg',
+  },
+  {
+    id: 51,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_50.jpg',
+  },
+  {
+    id: 52,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_51.jpg',
+  },
+  {
+    id: 53,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_52.jpg',
+  },
+  {
+    id: 54,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_53.jpg',
+  },
+  {
+    id: 55,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_54.jpg',
+  },
+  {
+    id: 56,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_55.jpg',
+  },
+  {
+    id: 57,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_56.jpg',
+  },
+  {
+    id: 58,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_57.jpg',
+  },
+  {
+    id: 59,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_58.jpg',
+  },
+  {
+    id: 60,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_59.jpg',
+  },
+  {
+    id: 61,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_60.jpg',
+  },
+  {
+    id: 62,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_61.jpg',
+  },
+  {
+    id: 63,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_62.jpg',
+  },
+  {
+    id: 64,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_63.jpg',
+  },
+  {
+    id: 65,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_64.jpg',
+  },
+  {
+    id: 66,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_65.jpg',
+  },
+  {
+    id: 67,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_66.jpg',
+  },
+  {
+    id: 68,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_67.jpg',
+  },
+  {
+    id: 69,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_68.jpg',
+  },
+  {
+    id: 70,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_69.jpg',
+  },
+  {
+    id: 71,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_70.jpg',
+  },
+  {
+    id: 72,
+    category: ['trouser-chains'],
+    name: '#',
+    price: '#',
+    img: 'P_71.jpg',
+  },
+  {
+    id: 73,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_72.jpg',
+  },
+  {
+    id: 74,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_73.jpg',
+  },
+  {
+    id: 75,
+    category: ['necklace'],
+    name: '#',
+    price: '#',
+    img: 'P_74.jpg',
+  },
+  {
+    id: 76,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_75.jpg',
+  },
+  {
+    id: 77,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_76.jpg',
+  },
+  {
+    id: 78,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_77.jpg',
+  },
+  {
+    id: 79,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_78.jpg',
+  },
+  {
+    id: 80,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_79.jpg',
+  },
+  {
+    id: 81,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_80.jpg',
+  },
+  {
+    id: 82,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_81.jpg',
+  },
+  {
+    id: 83,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_82.jpg',
+  },
+  {
+    id: 84,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_83.jpg',
+  },
+  {
+    id: 85,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_84.jpg',
+  },
+  {
+    id: 86,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_85.jpg',
+  },
+  {
+    id: 87,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_86.jpg',
+  },
+  {
+    id: 88,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_87.jpg',
+  },
+  {
+    id: 89,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_88.jpg',
+  },
+  {
+    id: 90,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_89.jpg',
+  },
+  {
+    id: 91,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_90.jpg',
+  },
+  {
+    id: 92,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_91.jpg',
+  },
+  {
+    id: 93,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_92.jpg',
+  },
+  {
+    id: 94,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_93.jpg',
+  },
+  {
+    id: 95,
+    category: ['bracelets'],
+    name: '#',
+    price: '#',
+    img: 'P_94.jpg',
+  },
+  {
+    id: 96,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_95.jpg',
+  },
+  {
+    id: 97,
+    category: ['waist-beads'],
+    name: '#',
+    price: '#',
+    img: 'P_96.jpg',
+  },
+  {
+    id: 98,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_97.jpg',
+  },
+  {
+    id: 99,
+    category: ['watches'],
+    name: '#',
+    price: '#',
+    img: 'P_98.jpg',
+  },
+  {
+    id: 100,
+    category: ['#'],
+    name: '#',
+    price: '#',
+    img: '#',
+  },
+];
+
+// Format price helper
+function formatPrice(price) {
+  return `₦${price.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Product Gallery Functions
+function openGalleryModal(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product || product.name === '#') return;
+
+  currentGalleryProduct = product;
+  currentImageIndex = 0;
+
+  // Update product details
+  galleryProductName.textContent = product.name;
+  galleryProductPrice.textContent = formatPrice(product.price);
+  galleryAddCartBtn.dataset.id = product.id;
+
+  // Use images array if available, otherwise fallback to single img
+  const images = product.images || [product.img];
+  updateGalleryImage(images[0]);
+  renderThumbnails(images);
+
+  // Show/hide navigation buttons based on image count
+  galleryPrevBtn.style.display = images.length > 1 ? 'flex' : 'none';
+  galleryNextBtn.style.display = images.length > 1 ? 'flex' : 'none';
+
+  // Set proper ARIA attributes
+  galleryModal.setAttribute('aria-hidden', 'false');
+  galleryModal.setAttribute('role', 'dialog');
+  galleryModal.setAttribute('aria-modal', 'true');
+  galleryModal.setAttribute('aria-labelledby', 'gallery-title');
+
+  galleryModal.classList.add('show');
+  document.body.classList.add('modal-open');
+
+  // Focus the close button for accessibility
+  setTimeout(() => {
+    galleryCloseBtn?.focus();
+  }, 100);
+}
+
+function closeGalleryModal() {
+  galleryModal.classList.remove('show');
+  galleryModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+  currentGalleryProduct = null;
+
+  // Return focus to the element that opened the modal
+  const lastFocusedElement = document.activeElement;
+  if (lastFocusedElement && lastFocusedElement !== document.body) {
+    lastFocusedElement.blur();
+  }
+}
+
+// Focus trapping function for accessibility
+function trapFocus(e) {
+  const focusableElements = galleryModal.querySelectorAll(
+    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+  );
+  const firstElement = focusableElements[0];
+  const lastElement = focusableElements[focusableElements.length - 1];
+
+  if (e.shiftKey) {
+    if (document.activeElement === firstElement) {
+      lastElement.focus();
+      e.preventDefault();
+    }
+  } else {
+    if (document.activeElement === lastElement) {
+      firstElement.focus();
+      e.preventDefault();
+    }
+  }
+}
+
+function updateGalleryImage(imageSrc) {
+  // Show loading state
+  galleryMainImage.style.opacity = '0.5';
+
+  // Create new image for preloading
+  const newImage = new Image();
+  newImage.onload = () => {
+    galleryMainImage.src = imageSrc;
+    galleryMainImage.alt = currentGalleryProduct?.name || 'Product Image';
+    galleryMainImage.style.opacity = '1';
+  };
+
+  newImage.onerror = () => {
+    // Fallback to original image if optimization fails
+    galleryMainImage.src = imageSrc;
+    galleryMainImage.alt = currentGalleryProduct?.name || 'Product Image';
+    galleryMainImage.style.opacity = '1';
+  };
+
+  // Set loading attribute for better performance
+  galleryMainImage.loading = 'eager';
+  galleryMainImage.decoding = 'async';
+
+  // Start loading the new image
+  newImage.src = imageSrc;
+}
+
+function renderThumbnails(images) {
+  galleryThumbnails.innerHTML = '';
+
+  images.forEach((imageSrc, index) => {
+    const thumbnail = document.createElement('img');
+    thumbnail.src = imageSrc;
+    thumbnail.alt = `${currentGalleryProduct.name} - View ${index + 1}`;
+    thumbnail.className = `gallery-thumbnail ${index === currentImageIndex ? 'active' : ''}`;
+    thumbnail.setAttribute('tabindex', '0');
+    thumbnail.setAttribute('role', 'button');
+    thumbnail.setAttribute('aria-label', `View image ${index + 1} of ${images.length}`);
+
+    // Click and keyboard event handlers
+    thumbnail.addEventListener('click', () => selectImage(index));
+    thumbnail.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        selectImage(index);
+      }
+    });
+
+    galleryThumbnails.appendChild(thumbnail);
+  });
+}
+
+function selectImage(index) {
+  const images = currentGalleryProduct.images || [currentGalleryProduct.img];
+  currentImageIndex = index;
+  updateGalleryImage(images[index]);
+
+  // Update active thumbnail
+  document.querySelectorAll('.gallery-thumbnail').forEach((thumb, i) => {
+    thumb.classList.toggle('active', i === index);
+  });
+}
+
+function nextImage() {
+  const images = currentGalleryProduct.images || [currentGalleryProduct.img];
+  currentImageIndex = (currentImageIndex + 1) % images.length;
+  selectImage(currentImageIndex);
+}
+
+function prevImage() {
+  const images = currentGalleryProduct.images || [currentGalleryProduct.img];
+  currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+  selectImage(currentImageIndex);
+}
+
+// Gallery Modal Event Listeners
+if (galleryModal) {
+  galleryCloseBtn?.addEventListener('click', closeGalleryModal);
+  galleryPrevBtn?.addEventListener('click', prevImage);
+  galleryNextBtn?.addEventListener('click', nextImage);
+
+  // Add proper accessibility attributes
+  galleryCloseBtn?.setAttribute('aria-label', 'Close product gallery');
+  galleryCloseBtn?.setAttribute('tabindex', '0');
+  galleryPrevBtn?.setAttribute('aria-label', 'Previous product image');
+  galleryPrevBtn?.setAttribute('tabindex', '0');
+  galleryNextBtn?.setAttribute('aria-label', 'Next product image');
+  galleryNextBtn?.setAttribute('tabindex', '0');
+
+  galleryModal.addEventListener('click', (e) => {
+    if (e.target === galleryModal) {
+      closeGalleryModal();
+    }
+  });
+
+  // Gallery add to cart button
+  galleryAddCartBtn?.addEventListener('click', (e) => {
+    const productId = parseInt(e.target.dataset.id);
+    addToCart(productId);
+    closeGalleryModal();
+  });
+
+  // Enhanced keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (!galleryModal.classList.contains('show')) return;
+
+    switch (e.key) {
+      case 'Escape':
+        closeGalleryModal();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        prevImage();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        nextImage();
+        break;
+      case 'Enter':
+        if (e.target === galleryCloseBtn) {
+          closeGalleryModal();
+        } else if (e.target === galleryPrevBtn) {
+          prevImage();
+        } else if (e.target === galleryNextBtn) {
+          nextImage();
+        }
+        break;
+      case 'Tab':
+        // Trap focus within modal
+        trapFocus(e);
+        break;
+    }
+  });
+}
+
+// Renders products based on filter and search term, updated to support multi-category arrays
+function renderProducts(filter = 'all', searchTerm = '') {
+  productsGrid.innerHTML = '';
+
+  // Add price list image for waist beads filter
+  if (filter === 'waist-beads') {
+    const priceListCard = document.createElement('div');
+    priceListCard.className = 'price-list-card';
+    priceListCard.innerHTML = `
+      <img src="price.jpeg" alt="Waist Beads Price List" loading="lazy" style="width: 100%; max-width: 600px; height: auto; border-radius: 12px; margin-bottom: 2rem; box-shadow: 0 8px 25px rgba(254, 142, 0, 0.4); border: 2px solid var(--color-sky);" />
+    `;
+
+    // Style the price list container to span full width and center the image
+    priceListCard.style.cssText = `
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      background: var(--bg-tertiary);
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px var(--shadow-color);
+      border: 1px solid var(--border-color);
+    `;
+
+    productsGrid.appendChild(priceListCard);
+  }
+
+  let filtered;
+  if (filter === 'all') {
+    filtered = productsData;
+  } else {
+    filtered = productsData.filter(p =>
+      Array.isArray(p.category) ? p.category.includes(filter) : p.category === filter
+    );
+  }
+
+  if (searchTerm) {
+    filtered = filtered.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (Array.isArray(product.category)
+        ? product.category.some(cat => cat.toLowerCase().includes(searchTerm.toLowerCase()))
+        : product.category.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
+
+  if(filtered.length === 0) {
+    const noResultsMessage = searchTerm ?
+      `No products found for "${searchTerm}".` :
+      'No products found.';
+    productsGrid.innerHTML = `<p style="color:#f2994a; text-align:center; width:100%;">${noResultsMessage}</p>`;
+    return;
+  }
+
+  filtered.forEach(product => {
+    const card = document.createElement('article');
+    card.className = 'product-card';
+    card.tabIndex = 0;
+
+    // Use dynamic product data with # as placeholders
+    const displayName = product.name;
+    const displayPrice = product.price === '#' ? '#' : formatPrice(product.price);
+
+    card.innerHTML = `
+      <img src="${product.img}" alt="${displayName}" loading="lazy" />
+      <div class="product-info">
+        <h3>${displayName}</h3>
+        <p class="product-price">${displayPrice}</p>
+        <div class="product-actions">
+          <button class="btn-add-cart" data-id="${product.id}" aria-label="Add ${displayName} to cart">Add to Cart</button>
+        </div>
+      </div>
+    `;
+
+    // Make whole card clickable for gallery (but not the button)
+    card.addEventListener('click', (e) => {
+      // Don't open gallery if clicking the add to cart button
+      if (!e.target.closest('.btn-add-cart')) {
+        openGalleryModal(product.id);
+      }
+    });
+
+    productsGrid.appendChild(card);
+  });
+}
+
+// Toggle mobile nav menu
+const navOverlay = document.getElementById('nav-overlay');
+
+hamburgerBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  const expanded = hamburgerBtn.getAttribute('aria-expanded') === 'true';
+  const newState = !expanded;
+
+  hamburgerBtn.setAttribute('aria-expanded', newState);
+  navMenu.classList.toggle('show', newState);
+  navOverlay.classList.toggle('show', newState);
+  document.body.classList.toggle('nav-open', newState);
+});
+
+// Close nav when clicking overlay
+navOverlay.addEventListener('click', () => {
+  closeNav();
+});
+
+// Close nav when clicking a nav link on mobile
+navMenu.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', (e) => {
+    // Update active state for navigation links
+    if (link.getAttribute('href').startsWith('#')) {
+      navMenu.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    }
+    closeNav();
+  });
+});
+
+// Close nav function
+function closeNav() {
+  navMenu.classList.remove('show');
+  navOverlay.classList.remove('show');
+  hamburgerBtn.setAttribute('aria-expanded', 'false');
+  document.body.classList.remove('nav-open');
+}
+
+// Close nav with escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && navMenu.classList.contains('show')) {
+    closeNav();
+  }
+});
+
+// Close nav when clicking outside on larger screens
+document.addEventListener('click', (e) => {
+  if (window.innerWidth > 962) return;
+  if (!navMenu.contains(e.target) && !hamburgerBtn.contains(e.target) && navMenu.classList.contains('show')) {
+    closeNav();
+  }
+});
+
+// Search functionality
+searchBtn.addEventListener('click', () => {
+  searchContainer.classList.add('show');
+  searchInput.focus();
+});
+
+searchCloseBtn.addEventListener('click', () => {
+  searchContainer.classList.remove('show');
+  searchInput.value = '';
+  currentSearchTerm = '';
+  renderProducts(currentFilter);
+});
+
+searchInput.addEventListener('input', (e) => {
+  currentSearchTerm = e.target.value.trim();
+  renderProducts(currentFilter, currentSearchTerm);
+});
+
+// Close search with escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && searchContainer.classList.contains('show')) {
+    searchContainer.classList.remove('show');
+    searchInput.value = '';
+    currentSearchTerm = '';
+    renderProducts(currentFilter);
+  }
+});
+
+// Filter functionality - updated for proper ARIA state management
+filterButtons.forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    // Update active filter button
+    filterButtons.forEach(b => {
+      b.classList.remove('active');
+      b.setAttribute('aria-pressed', 'false');
+    });
+
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+
+    // Apply filter
+    const filter = btn.dataset.filter;
+    currentFilter = filter;
+    renderProducts(filter, currentSearchTerm);
+  });
+});
+
+// Toast notification function
+function showToast(message, duration = 2000) {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification show';
+  toast.textContent = message;
+
+  document.body.appendChild(toast);
+
+  // Auto hide after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast);
+      }
+    }, 300);
+  }, duration);
+}
+
+// Cart functionality
+function addToCart(productId) {
+  const product = productsData.find(p => p.id === productId);
+  if (!product) {
+    showToast('Product not found');
+    return;
+  }
+
+  const existingItem = cart.find(item => item.id === productId);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    // Use product data as-is, including placeholders
+    const price = product.price === '#' ? 0 : parseFloat(product.price);
+    cart.push({
+      id: productId,
+      name: product.name,
+      price: price,
+      img: product.img,
+      quantity: 1
+    });
+  }
+
+  renderCart();
+  saveCart();
+  updateCartCount();
+
+  // Show toast notification
+  showToast(`${product.name} added to cart!`, 1500);
+
+  // Auto open cart modal after a brief delay
+  setTimeout(() => {
+    openCartModal();
+  }, 800);
+}
+
+// Function to open cart modal
+function openCartModal() {
+  cartModal.classList.add('show');
+  cartModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('modal-open');
+}
+
+function renderCart() {
+  cartItemsList.innerHTML = '';
+
+  if (cart.length === 0) {
+    cartItemsList.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 2rem;">Your cart is empty</li>';
+    totalPriceEl.textContent = 'Total: ₦0.00';
+    checkoutBtn.disabled = true;
+    return;
+  }
+
+  let total = 0;
+
+  cart.forEach(item => {
+    const cartItem = document.createElement('li');
+    cartItem.className = 'cart-item';
+
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
+
+    cartItem.innerHTML = `
+      <img src="${item.img}" alt="${item.name}" loading="lazy">
+      <div class="cart-item-info">
+        <h4>${item.name}</h4>
+        <p>${formatPrice(item.price)}</p>
+      </div>
+      <div class="cart-item-quantity">
+        <button class="btn-quantity-decrease" data-id="${item.id}" aria-label="Decrease quantity">-</button>
+        <span aria-live="polite">${item.quantity}</span>
+        <button class="btn-quantity-increase" data-id="${item.id}" aria-label="Increase quantity">+</button>
+      </div>
+      <button class="btn-remove-item" data-id="${item.id}" aria-label="Remove item from cart">×</button>
+    `;
+
+    cartItemsList.appendChild(cartItem);
+  });
+
+  totalPriceEl.textContent = `Total: ${formatPrice(total)}`;
+  checkoutBtn.disabled = false;
+}
+
+function updateCartCount() {
+  const cartCount = document.querySelector('.cart-count');
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (totalItems > 0) {
+    cartCount.textContent = totalItems;
+    cartCount.style.display = 'flex';
+  } else {
+    cartCount.style.display = 'none';
+  }
+}
+
+function updateCartQuantity(productId, change) {
+  const item = cart.find(item => item.id === productId);
+  if (!item) return;
+
+  item.quantity += change;
+
+  if (item.quantity <= 0) {
+    const index = cart.findIndex(item => item.id === productId);
+    cart.splice(index, 1);
+  }
+
+  renderCart();
+  saveCart();
+  updateCartCount();
+}
+
+function removeFromCart(productId) {
+  const index = cart.findIndex(item => item.id === productId);
+  if (index !== -1) {
+    cart.splice(index, 1);
+    renderCart();
+    saveCart();
+    updateCartCount();
+  }
+}
+
+// Event delegation for cart buttons and product buttons
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('btn-add-cart')) {
+    const productId = parseInt(e.target.dataset.id);
+    addToCart(productId);
+  } else if (e.target.classList.contains('btn-quantity-increase')) {
+    const productId = parseInt(e.target.dataset.id);
+    updateCartQuantity(productId, 1);
+  } else if (e.target.classList.contains('btn-quantity-decrease')) {
+    const productId = parseInt(e.target.dataset.id);
+    updateCartQuantity(productId, -1);
+  } else if (e.target.classList.contains('btn-remove-item')) {
+    const productId = parseInt(e.target.dataset.id);
+    removeFromCart(productId);
+  }
+});
+
+// Cart modal functionality
+cartBtn.addEventListener('click', () => {
+  openCartModal();
+});
+
+cartCloseBtn.addEventListener('click', () => {
+  cartModal.classList.remove('show');
+  cartModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+});
+
+// Close cart modal when clicking outside
+cartModal.addEventListener('click', (e) => {
+  if (e.target === cartModal) {
+    cartModal.classList.remove('show');
+    cartModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+});
+
+// Checkout functionality
+checkoutBtn.addEventListener('click', () => {
+  if (cart.length === 0) return;
+
+  // Prepare order message
+  let orderMessage = "Hello! I'd like to place an order:\n\n";
+  let total = 0;
+
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    total += itemTotal;
+    orderMessage += `• ${item.name} x${item.quantity} - ${formatPrice(itemTotal)}\n`;
+  });
+
+  orderMessage += `\nTotal: ${formatPrice(total)}`;
+  orderMessage += `\n\nPlease confirm availability and provide payment details.`;
+
+  currentOrderMessage = orderMessage;
+
+  // Close cart modal and open checkout modal
+  cartModal.classList.remove('show');
+  cartModal.setAttribute('aria-hidden', 'true');
+  checkoutModal.classList.add('show');
+  checkoutModal.setAttribute('aria-hidden', 'false');
+});
+
+// Checkout method selection
+whatsappBtn.addEventListener('click', () => {
+  const whatsappUrl = `https://wa.me/2349078161442?text=${encodeURIComponent(currentOrderMessage)}`;
+  window.open(whatsappUrl, '_blank');
+  checkoutModal.classList.remove('show');
+  checkoutModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+});
+
+gmailBtn.addEventListener('click', () => {
+  const subject = 'New Order from Website';
+  const gmailUrl = `mailto:annysallure@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(currentOrderMessage)}`;
+  window.location.href = gmailUrl;
+  checkoutModal.classList.remove('show');
+  checkoutModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+});
+
+// Close checkout modal
+checkoutCloseBtn.addEventListener('click', () => {
+  checkoutModal.classList.remove('show');
+  checkoutModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('modal-open');
+});
+
+checkoutModal.addEventListener('click', (e) => {
+  if (e.target === checkoutModal) {
+    checkoutModal.classList.remove('show');
+    checkoutModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+  }
+});
+
+// Close modals with Escape key
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (cartModal.classList.contains('show')) {
+      cartModal.classList.remove('show');
+      cartModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+    } else if (checkoutModal.classList.contains('show')) {
+      checkoutModal.classList.remove('show');
+      checkoutModal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+    }
+  }
+});
+
+// Contact form functionality with WhatsApp integration
+contactForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(contactForm);
+  const name = formData.get('name').trim();
+  const email = formData.get('email').trim();
+  const phone = formData.get('phone').trim();
+  const message = formData.get('message').trim();
+
+  // Basic validation
+  if (!name || !email || !message) {
+    formStatus.innerHTML = '<span style="color: var(--color-orange);">Please fill in all required fields.</span>';
+    return;
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    formStatus.innerHTML = '<span style="color: var(--color-orange);">Please enter a valid email address.</span>';
+    return;
+  }
+
+  formStatus.innerHTML = '<span style="color: var(--color-sky);">Sending message...</span>';
+
+  try {
+    // Get current date and time
+    const now = new Date();
+    const timestamp = now.toLocaleString('en-NG', {
+      timeZone: 'Africa/Lagos',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+
+    // Create comprehensive WhatsApp message
+    const whatsappMessage = `🌟 *NEW CONTACT FORM SUBMISSION* 🌟
+
+👤 *Name:* ${name}
+📧 *Email:* ${email}
+${phone ? `📱 *Phone:* ${phone}` : ''}
+
+💬 *Message:*
+${message}
+
+📅 *Submitted:* ${timestamp}
+🌐 *Source:* Anny's Allure Website Contact Form
+
+---
+This message was automatically sent from the website contact form.`;
+
+    // WhatsApp numbers to send to
+    const whatsappNumbers = ['+2348102443212', '+2349078161442'];
+
+    // Encode the message for URL
+    const encodedMessage = encodeURIComponent(whatsappMessage);
+
+    // Create WhatsApp URLs
+    const whatsappUrl1 = `https://wa.me/2348102443212?text=${encodedMessage}`;
+    const whatsappUrl2 = `https://wa.me/2349078161442?text=${encodedMessage}`;
+
+    // Show success message immediately
+    formStatus.innerHTML = '<span style="color: #4CAF50;">Message prepared! WhatsApp will open to send your message to our team.</span>';
+
+    // Reset form
+    contactForm.reset();
+
+    // Open first WhatsApp number
+    setTimeout(() => {
+      window.open(whatsappUrl1, '_blank');
+    }, 500);
+
+    // Open second WhatsApp number after a delay
+    setTimeout(() => {
+      window.open(whatsappUrl2, '_blank');
+    }, 1500);
+
+    // Update status message to inform about multiple windows
+    setTimeout(() => {
+      formStatus.innerHTML = '<span style="color: #4CAF50;">Two WhatsApp windows have opened - one for each contact number. Please send the message in both windows to ensure we receive it.</span>';
+    }, 2000);
+
+    // Clear success message after 10 seconds
+    setTimeout(() => {
+      formStatus.innerHTML = '';
+    }, 10000);
+
+  } catch (error) {
+    formStatus.innerHTML = '<span style="color: var(--color-orange);">There was an error processing your message. Please try contacting us directly via WhatsApp at +2348102443212 or +2349078161442.</span>';
+  }
+});
+
+// Initialize the app
+renderProducts();
+updateCartCount();
