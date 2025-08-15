@@ -1048,11 +1048,12 @@ const productsData = [
   },
   {
     id: 114,
-    category: ['#'],
+    category: ['waist-beads'],
     name: '?',
     price: '#',
-    img: '#',
-    images: ['#'],
+    img: 'P_130.jpg',
+    images: ['P_130.jpg',
+            'P_131.jpg',],
   },
   {
     id: 115,
